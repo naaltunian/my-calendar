@@ -1,16 +1,22 @@
 import React from "react";
 import dateFns from "date-fns";
-import axios from 'axios';
+import axios from "axios";
+import Dialog from '@material-ui/core/Dialog';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
 
 class Calendar extends React.Component {
   state = {
     currentMonth: new Date(),
     selectedDate: new Date(),
-    events: {}
-  };
+    events: {},
+    open: false,
+    selectedEvent: {}
+  }
 
   componentDidMount(){
-    const { currentMonth, selectedDate } = this.state;
+    const { currentMonth } = this.state;
     const monthStart = dateFns.startOfMonth(currentMonth);
     const monthEnd = dateFns.endOfMonth(monthStart);
     const startDate = dateFns.startOfWeek(monthStart);
@@ -18,20 +24,52 @@ class Calendar extends React.Component {
     const dateFormat = "YYYY-MM-DD";
     const formattedStartDate = dateFns.format(startDate, dateFormat);
     const formattedEndDate = dateFns.format(endDate, dateFormat);
-    axios.get(`/events.json?start_date=${formattedStartDate}&end_date=${formattedEndDate}`).then((response) => {
-      this.setState({events: response.data});
-    })
-    .catch((error) => {
-      console.log(error.response);
+    axios.get(`/events.json?start_date=${formattedStartDate}&end_date=${formattedEndDate}`)
+      .then((response) => {
+        this.setState({events: response.data});
+      })
+      .catch((error) => {
+        console.log(error.response);
+      })
+  }
+
+  handleClose = () => {
+    this.setState({ open: false })
+  }
+
+  handleOpen = event => {
+    this.setState({
+      open: true,
+      selectedEvent: event
     })
   }
 
   render() {
+    const { selectedEvent } = this.state;
     return (
+      <div>
         <div className="calendar">
-        {this.renderHeader()}
-        {this.renderDays()}
-        {this.renderCells()}
+          {this.renderHeader()}
+          {this.renderDays()}
+          {this.renderCells()}
+        </div>
+        <Dialog
+          open={this.state.open}
+          onClose={this.handleClose}
+        >
+          <DialogTitle>
+            { selectedEvent.title } - {dateFns.format(selectedEvent.start_at, "MMMM Do")}
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              { selectedEvent.description }
+              <p>
+                <b>Start: </b>{ dateFns.format(selectedEvent.start_at, "h:mm a") }<br></br>
+                <b>End: </b>{ dateFns.format(selectedEvent.end_at, "h:mm a") }
+              </p>
+            </DialogContentText>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
@@ -57,7 +95,6 @@ class Calendar extends React.Component {
     );
   }
 
-
   renderDays() {
     const dateFormat = "dddd";
     const days = [];
@@ -78,7 +115,6 @@ class Calendar extends React.Component {
     const monthEnd = dateFns.endOfMonth(monthStart);
     const startDate = dateFns.startOfWeek(monthStart);
     const endDate = dateFns.endOfWeek(monthEnd);
-
     const dateFormat = "D";
     const eventDateFormat = "YYYY-MM-DD";
     const rows = [];
@@ -102,7 +138,15 @@ class Calendar extends React.Component {
           >
             {
               (events[eventFormattedDate] || []).map((event) => {
-                return(<div key={event.id} className="event">{event.title}</div>)
+                return(
+                  <div
+                    key={event.id}
+                    className="event"
+                    onClick={ () => { this.handleOpen(event) } }
+                  >
+                    {event.title}
+                  </div>
+                );
               })
             }
             <span className="number">{formattedDate}</span>
@@ -118,19 +162,13 @@ class Calendar extends React.Component {
       );
       days = [];
     }
-    return (
+    return(
       <div className="body">{rows}</div>
-      )
+    );
   }
 
-  onDateClick = day => {
-    this.setState({
-      selectedDate: day
-    });
-  };
-
   nextMonth = () => {
-    let currentMonth = dateFns.addMonths(this.state.currentMonth, 1)
+    let currentMonth = dateFns.addMonths(this.state.currentMonth, 1);
     const monthStart = dateFns.startOfMonth(currentMonth);
     const monthEnd = dateFns.endOfMonth(monthStart);
     const startDate = dateFns.startOfWeek(monthStart);
@@ -164,7 +202,6 @@ class Calendar extends React.Component {
         console.log(error.response);
       })
   };
-
 }
 
 export default Calendar;

@@ -50,6 +50,10 @@ body {
     position: relative;
 }
 
+.event {
+  cursor: pointer;
+}
+
 
 /* GRID */
 
@@ -138,8 +142,8 @@ body {
   position: relative;
   height: 5em;
   border-right: 1px solid var(--border-color);
-  overflow: hidden;
-  cursor: pointer;
+  overflow-x: hidden;
+  overflow-y: scroll;
   background: var(--neutral-color);
   transition: 0.25s ease-out;
 }

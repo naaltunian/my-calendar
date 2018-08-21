@@ -99,11 +99,10 @@ class Calendar extends React.Component {
                 : dateFns.isSameDay(day, selectedDate) ? "selected" : ""
             }`}
             key={day}
-            onClick={() => this.onDateClick(dateFns.parse(cloneDay))}
           >
             {
               (events[eventFormattedDate] || []).map((event) => {
-                return(<div>Event</div>)
+                return(<div key={event.id} className="event">{event.title}</div>)
               })
             }
             <span className="number">{formattedDate}</span>
@@ -131,15 +130,39 @@ class Calendar extends React.Component {
   };
 
   nextMonth = () => {
-    this.setState({
-      currentMonth: dateFns.addMonths(this.state.currentMonth, 1)
-    });
+    let currentMonth = dateFns.addMonths(this.state.currentMonth, 1)
+    const monthStart = dateFns.startOfMonth(currentMonth);
+    const monthEnd = dateFns.endOfMonth(monthStart);
+    const startDate = dateFns.startOfWeek(monthStart);
+    const endDate = dateFns.endOfWeek(monthEnd);
+    const dateFormat = "YYYY-MM-DD";
+    const formattedStartDate = dateFns.format(startDate, dateFormat);
+    const formattedEndDate = dateFns.format(endDate, dateFormat);
+    axios.get(`/events.json?start_date=${formattedStartDate}&end_date=${formattedEndDate}`)
+      .then((response) => {
+        this.setState({currentMonth, events: response.data});
+      })
+      .catch((error) => {
+        console.log(error.response);
+      })
   };
 
   prevMonth = () => {
-    this.setState({
-      currentMonth: dateFns.subMonths(this.state.currentMonth, 1)
-    });
+    let currentMonth = dateFns.subMonths(this.state.currentMonth, 1);
+    const monthStart = dateFns.startOfMonth(currentMonth);
+    const monthEnd = dateFns.endOfMonth(monthStart);
+    const startDate = dateFns.startOfWeek(monthStart);
+    const endDate = dateFns.endOfWeek(monthEnd);
+    const dateFormat = "YYYY-MM-DD";
+    const formattedStartDate = dateFns.format(startDate, dateFormat);
+    const formattedEndDate = dateFns.format(endDate, dateFormat);
+    axios.get(`/events.json?start_date=${formattedStartDate}&end_date=${formattedEndDate}`)
+      .then((response) => {
+        this.setState({currentMonth, events: response.data});
+      })
+      .catch((error) => {
+        console.log(error.response);
+      })
   };
 
 }
